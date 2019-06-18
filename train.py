@@ -77,6 +77,5 @@ if args.verbose >0:
 	print('l2: {}'.format(args.l2))
 	print('slack: {}'.format(args.slack))
 	print('Patience: {}'.format(args.patience))
-	print('Softmax Mode is: {}'.format(args.softmax))
 
 trainer.train(n_epochs=args.epochs, save_every=args.save_every)

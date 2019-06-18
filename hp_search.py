@@ -40,7 +40,7 @@ parser.add_argument('--checkpoint-path', type=str, default=None, metavar='Path',
 args = parser.parse_args()
 args.cuda = True if not args.no_cuda and torch.cuda.is_available() else False
 
-def train(lr, l2, momentum, slack, train_mode, patience, model, epochs, batch_size, valid_batch_size, train_mode, n_workers, cuda, data_path, valid_data_path, checkpoint_path, softmax):
+def train(lr, l2, momentum, slack, patience, model, epochs, batch_size, valid_batch_size, train_mode, n_workers, cuda, data_path, valid_data_path, checkpoint_path):
 
 	cp_name = get_cp_name(checkpoint_path)
 

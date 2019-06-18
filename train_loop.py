@@ -13,7 +13,7 @@ from utils import compute_eer
 
 class TrainLoop(object):
 
-	def __init__(self, model, optimizer, train_loader, valid_loader, slack, patience, verbose=-1, cp_name=None, save_cp=False, checkpoint_path=None, checkpoint_epoch=None, cuda=True):
+	def __init__(self, model, optimizer, train_loader, valid_loader, slack, train_mode, patience, verbose=-1, cp_name=None, save_cp=False, checkpoint_path=None, checkpoint_epoch=None, cuda=True):
 		if checkpoint_path is None:
 			# Save to current directory
 			self.checkpoint_path = os.getcwd()
@@ -33,6 +33,7 @@ class TrainLoop(object):
 		self.total_iters = 0
 		self.cur_epoch = 0
 		self.slack = slack
+		self.train_mode = train_mode
 		self.harvester_val = AllTripletSelector()
 		self.verbose = verbose
 		self.save_cp = save_cp
@@ -54,12 +55,13 @@ class TrainLoop(object):
 			else:
 				train_iter = enumerate(self.train_loader)
 
-			ce=0.0
+			train_loss=0.0
 
 			# Train step
 			for t, batch in train_iter:
-				train_loss = self.train_step(batch)
-				self.history['train_loss_batch'].append(train_loss)
+				train_loss_batch = self.train_step(batch)
+				self.history['train_loss_batch'].append(train_loss_batch)
+				train_loss += train_loss_batch
 				self.total_iters += 1
 
 			self.history['train_loss'].append(train_loss/(t+1))
@@ -131,17 +133,17 @@ class TrainLoop(object):
 
 		embeddings = self.model.forward(x)
 
-		loss = torch.nn.CrossEntropyLoss(reduction='none' if self.train_mode=='hyper' else 'mean')(self.model.out_proj(embeddings_norm), y)
+		loss = torch.nn.CrossEntropyLoss(reduction='none' if self.train_mode=='hyper' else 'mean')(self.model.out_proj(embeddings), y)
 
 		if self.train_mode=='hyper':
 			eta = self.slack*loss.detach().max().item()
-			loss = (-torch.log(eta-loss)).sum()
+			loss = -torch.log(eta-loss).sum()
 
 		loss.backward()
 
 		self.optimizer.step()
 
-		return loss_class.item(), loss_metric.item()
+		return loss.item()
 
 	def valid(self, batch):
 
