@@ -136,7 +136,7 @@ class TrainLoop(object):
 		loss = torch.nn.CrossEntropyLoss(reduction='none' if self.train_mode=='hyper' else 'mean')(self.model.out_proj(embeddings), y)
 
 		if self.train_mode=='hyper':
-			eta = self.slack*loss.detach().max().item()
+			eta = self.slack*loss.detach().max().item()+1e-6
 			loss = -torch.log(eta-loss).sum()
 
 		loss.backward()
